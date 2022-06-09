@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Schedules</title>
+</head>
+<body>
+  <h1>Getting Schedules</h1>
+  <script>
+    // feeble attempt with promises that has the alert for request completed and alert for counts in wrong order
+    function alertCount(schedules) {
+      let ids = schedules.map(({staff_id}) => staff_id);
+      let uniqueIds = ids.filter((id, idx) => ids.indexOf(id) === idx);
+      let promises = [];
+
+      uniqueIds.forEach(id => {
+        const promise = new Promise(function(resolve, reject) {
+          let request = new XMLHttpRequest();
+          request.open('GET', 'http://localhost:3000/api/schedules/' + String(id));
+          request.responseType = 'json';
+
+          request.addEventListener('load', () => {
+            resolve(request.response);
+          });
+
+          request.send();
+        });
+
+        promises.push(promise);
+      });
+
+      Promise.all([...promises]).then(values => {
+        alert(uniqueIds.map((id, idx) => `staff ${id}: ${values[idx].length}`).join('\n'));
+      });
+    }
+
+    function alertScheduleCount(schedules) {
+      let scheduleCounts = {};
+
+      schedules.forEach(({staff_id}) => {
+        scheduleCounts[`staff ${staff_id}`] = (scheduleCounts[`staff ${staff_id}`] || 0) + 1;
+      });
+
+      alert(Object.entries(scheduleCounts).map(arr => arr.join(': ')).join('\n'));
+    }
+
+    function getSchedules() {
+      const url = 'http://localhost:3000/api/schedules';
+      let request = new XMLHttpRequest();
+      request.open('GET', url);
+      request.responseType = 'json';
+      request.timeout = 5000;
+
+      request.addEventListener('load', () => {
+        const schedules = request.response;
+        if (schedules.length > 0) {
+          // alertCount(schedules);
+          alertScheduleCount(schedules);
+        } else {
+          alert('There are currently no schedules available for booking');
+        }
+      });
+
+      request.addEventListener('timeout', () => {
+        alert('It is taking longer than usual, please try again later.');
+      });
+
+      request.addEventListener('loadend', () => {
+        alert('The request has completed');
+      });
+
+      request.send();
+    }
+
+    getSchedules();
+  </script>
+</body>
+</html>
