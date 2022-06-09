@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adding Staff</title>
+</head>
+<body>
+  <h1>Adding Staff</h1>
+  <p>
+    Add staff to the database<br>
+    - if the user tries to submit without an email or name, alert the user "staff can not be created. Check your inputs". <br>
+    - if the user has an email but no name and tries to submit, alert same message <br>
+    - if the user inputs valid email and name and submits, alert "Successfully created staff with id: ${id}" <br>
+    <br>
+    <h3>Algorithm</h3>
+    - check if the both inputs have values, if they don't then alert error message when user tries to submit <br>
+    - if both inputs are valid, make a post request to /api/staff_members <br>
+    - get the id of the newly created staff member and alert the user of the successful request <br>
+    - the response of a successful POST request will be an object with an id <br>
+  </p>
+  <br>
+  <form action="/api/staff_members" method="post" id="add-staff">
+    <label for="email">Email: </label>
+    <input type="email" name="email" id="email">
+    <label for="name">Name: </label>
+    <input type="text" name="name" id="name">
+    <input type="submit">
+  </form>
+
+  <script>
+    const form = document.querySelector('#add-staff');
+    const request = new XMLHttpRequest();
+    
+    form.addEventListener('submit', () => {
+      event.preventDefault();
+      let data = new FormData(form);
+
+      request.open(form.method.toUpperCase(), form.getAttribute('action'));
+      request.send(data);
+    });
+
+    request.addEventListener('load', () => {
+      if (request.status === 201) {
+        let {id} = JSON.parse(request.response);
+        alert(`Successfully created staff with id: ${id}`);
+        form.reset();
+      } else if (request.status === 400) {
+        alert(request.response);
+      }
+    });
+  </script>
+</body>
+</html>
